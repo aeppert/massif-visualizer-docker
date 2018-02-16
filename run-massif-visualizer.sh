@@ -4,12 +4,25 @@
 # NOTE: On macOS with XQuartz, you will need to allow network connections to X11
 #
 
-ip=$(ifconfig en0 | grep inet | awk '$1=="inet" {print $2}') && echo "IP: $ip"
-xhost + ${ip}
+XSOCK=/tmp/.X11-unix
+XAUTH=/tmp/.docker.xauth
+HOST_PATH=`echo ~/massif_files`
+CONT_PATH="/massif_files"
+mkdir -p $HOST_PATH
+chmod 755 $HOST_PATH
+touch $XAUTH
+xauth nlist $DISPLAY | sed -e 's/^..../ffff/' | xauth -f $XAUTH nmerge -
 
-docker run -d -ti --rm \
-   -e DISPLAY=${ip}:0 \
-   -v /tmp/.X11-unix:/tmp/.X11-unix \
-   -v /tmp/massif-tests:/home/massif/test \
-   aeppert/massif-visualizer
+xhost +local:massif
 
+docker run --rm -it \
+        --volume=$XSOCK:$XSOCK:rw \
+        --volume=$XAUTH:$XAUTH:rw \
+        --volume=$HOST_PATH:$CONT_PATH:rw \
+        --env="XAUTHORITY=${XAUTH}" \
+        --env="DISPLAY" \
+        --user="massif" \
+	--name massif-visu \
+    aeppert/massif-visualizer
+
+xhost -local:massif
