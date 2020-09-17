@@ -17,8 +17,7 @@ if [ $(uname) = Darwin ]; then
    else
       docker run -d -ti --rm \
          -e DISPLAY=${ip}:0 \
-         -v ~/Downloads/tmp1232/.X11-unix:/tmp/.X11-unix \
-         -v ~/Downloads/tmp1232/massif-tests:/home/massif/test \
+         -v ~/Downloads/massif-files:/home/massif/test \
          aeppert/massif-visualizer
    fi
 else
